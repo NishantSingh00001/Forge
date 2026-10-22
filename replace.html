@@ -1,0 +1,59 @@
+<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forge — Find & Replace</title>
+<meta name="description" content="Regex-powered find and replace with live highlighted matches and capture groups.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="forge.css">
+</head><body>
+<div id="topbar"></div>
+<main class="shell"><div class="page">
+  <section class="phead" style="padding-bottom:24px">
+    <div class="eyebrow">search</div>
+    <h1>Find &amp; <span class="g">replace</span>.</h1>
+  </section>
+  <section class="card" style="margin-bottom:18px"><div style="padding:18px">
+    <div class="row">
+      <input class="inp" id="find" placeholder="Find…" style="flex:1;min-width:160px">
+      <input class="inp" id="repl" placeholder="Replace with… ($1 for groups)" style="flex:1;min-width:160px">
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="chk"><input type="checkbox" id="regex"> Regex</label>
+      <label class="chk"><input type="checkbox" id="ci" checked> Ignore case</label>
+      <label class="chk"><input type="checkbox" id="whole"> Whole word</label>
+      <span class="k" id="matchCount" style="margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--acc)"></span>
+    </div>
+  </div></section>
+  <div class="grid2">
+    <div class="col">
+      <div class="panelhead"><span class="t">Input</span></div>
+      <textarea class="ta" id="inp" placeholder="Paste text…"></textarea>
+    </div>
+    <div class="col">
+      <div class="panelhead"><span class="t">Matches (highlighted)</span><div class="acts"><button class="btn primary" id="doReplace" data-press>Replace all</button><button class="btn" id="cp" data-press>Copy</button></div></div>
+      <div class="hl" id="preview"></div>
+    </div>
+  </div>
+</div></main>
+<script src="forge.js"></script>
+<script>
+function buildRegex(){let f=$('find').value;if(!f)return null;const flags='g'+($('ci').checked?'i':'');
+  if($('regex').checked){try{return new RegExp(f,flags);}catch(e){return 'ERR';}}
+  f=f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');if($('whole').checked)f='\\b'+f+'\\b';return new RegExp(f,flags);}
+function render(){const s=$('inp').value;const re=buildRegex();
+  if(re==='ERR'){$('preview').innerHTML='<span style="color:var(--rose)">Invalid regular expression</span>';$('matchCount').textContent='';return;}
+  if(!re){$('preview').innerHTML=esc(s);$('matchCount').textContent='';return;}
+  let count=0;const html=esc(s).replace(new RegExp(re.source,re.flags),m=>{count++;return '<mark>'+m+'</mark>';});
+  $('preview').innerHTML=html||'<span style="color:var(--mut)">No text</span>';$('matchCount').textContent=count+' match'+(count===1?'':'es');
+}
+window.initPage=function(){
+  $('inp').value=S.last||'';
+  ['input'].forEach(ev=>$('inp').addEventListener(ev,()=>{S.last=$('inp').value;save();render();}));
+  ['find','repl'].forEach(id=>$(id).addEventListener('input',render));
+  ['regex','ci','whole'].forEach(id=>$(id).addEventListener('change',render));
+  $('doReplace').onclick=()=>{const re=buildRegex();if(!re||re==='ERR'){toast('Enter a valid pattern');return;}const out=$('inp').value.replace(new RegExp(re.source,re.flags),$('repl').value);$('inp').value=out;S.last=out;save();render();toast('Replaced');};
+  $('cp').onclick=()=>copyText($('inp').value,'Text copied');
+  render();
+};
+</script>
+</body></html>

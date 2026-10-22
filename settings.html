@@ -1,0 +1,55 @@
+<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forge — Settings</title>
+<meta name="description" content="Theme, accent, saved snippets, transform history and the full feature list.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="forge.css">
+</head><body>
+<div id="topbar"></div>
+<main class="shell"><div class="page">
+  <section class="phead" style="padding-bottom:24px">
+    <div class="eyebrow">config</div>
+    <h1>Set<span class="g">tings</span>.</h1>
+  </section>
+  <div class="grid2">
+    <div class="col">
+      <section class="card"><div class="ch"><h2>Appearance</h2></div>
+        <div class="setrow"><div><div class="si">Theme</div><div class="sd">Dark terminal or light.</div></div><button class="toggle" id="themeToggle"></button></div>
+        <div class="setrow"><div><div class="si">Accent</div><div class="sd">Recolors the UI and the grid field.</div></div><div class="accents" id="accents2"></div></div>
+      </section>
+      <section class="card"><div class="ch"><h2>Snippets</h2><span class="k"><button class="ghost" id="saveSnip" data-press>Save current</button></span></div>
+        <div style="padding:18px"><div class="chiplist" id="snips"></div></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card"><div class="ch"><h2>History</h2><span class="k"><button class="ghost" id="clrHist" data-press>Clear</button></span></div>
+        <div style="padding:18px"><div class="chiplist" id="hist"></div></div>
+      </section>
+      <section class="card"><div class="ch"><h2>Keyboard</h2></div>
+        <div class="setrow"><div class="si">Toggle theme</div><span class="k">T</span></div>
+        <div class="setrow"><div class="si">Close dialog</div><span class="k">Esc</span></div>
+      </section>
+    </div>
+  </div>
+  <section class="card" style="margin-top:18px"><div class="ch"><h2>About &amp; features</h2></div>
+    <div style="padding:18px"><p style="color:var(--ink2);line-height:1.7;margin-bottom:12px;font-size:13px">Forge is a fully client-side text workbench — transform, analyze, search and convert text with no account, no server and nothing uploaded. Your text and snippets live only in this browser.</p><div class="feat" id="featlist" style="text-align:left;margin:0"></div></div>
+  </section>
+</div></main>
+<script src="forge.js"></script>
+<script>
+function renderSnips(){$('snips').innerHTML=S.snippets.length?S.snippets.map((s,i)=>'<div class="chip" data-i="'+i+'"><span class="w">'+esc((s.name||s.text).slice(0,28))+'</span><span class="rm">'+icon('close',12)+'</span></div>').join(''):'<div class="empty">No snippets. Save your current text to reuse it.</div>';
+  $('snips').querySelectorAll('.chip').forEach(c=>{const i=+c.dataset.i;c.querySelector('.w').onclick=()=>{S.last=S.snippets[i].text;save();toast('Loaded into workbench');location.href='transform.html';};c.querySelector('.rm').onclick=e=>{e.stopPropagation();S.snippets.splice(i,1);save();renderSnips();};});}
+function renderHist(){$('hist').innerHTML=S.history.length?S.history.slice(0,24).map(h=>'<div class="chip"><span class="w">'+esc(h.label)+'</span></div>').join(''):'<div class="empty">No history yet.</div>';}
+window.initPage=function(){
+  $('themeToggle').classList.toggle('on',S.settings.theme==='light');
+  $('themeToggle').onclick=()=>{toggleTheme();$('themeToggle').classList.toggle('on',S.settings.theme==='light');};
+  $('accents2').innerHTML=ACCS.map(([a,b])=>'<button class="ad'+(a===S.settings.accent?' on':'')+'" data-a="'+a+'" data-press style="width:24px;height:24px;background:linear-gradient(135deg,'+a+','+b+')"></button>').join('');
+  $('accents2').querySelectorAll('.ad').forEach(btn=>btn.onclick=()=>setAccent(btn.dataset.a,ACCS.find(x=>x[0]===btn.dataset.a)[1]));
+  $('saveSnip').onclick=()=>{const t=(S.last||'').trim();if(!t){toast('No text to save');return;}S.snippets.unshift({name:t.slice(0,24),text:t});S.snippets=S.snippets.slice(0,30);save();renderSnips();toast('Snippet saved');};
+  $('clrHist').onclick=()=>{S.history=[];save();renderHist();toast('History cleared');};
+  renderSnips();renderHist();
+  $('featlist').textContent='UPPERCASE · lowercase · Title Case · Sentence case · camelCase · snake_case · kebab-case · CONSTANT_CASE · capitalize words · swap case · sort A–Z · sort Z–A · sort by length · reverse lines · shuffle lines · deduplicate · number lines · remove blank lines · trim lines · collapse spaces · reverse characters · remove punctuation · strip HTML · slugify · char count · word count · sentence count · paragraph count · line count · token estimate · reading time · unique words · avg word length · longest word · Flesch readability · word frequency · char frequency · plain find · regex find · case-insensitive · whole-word · highlighted matches · capture-group replace · Base64 enc/dec · URL enc/dec · HTML entity enc/dec · JSON pretty · JSON minify · ROT13 · text↔binary · text↔hex · copy · download · import file · saved snippets · transform history · light & dark · accents · custom cursor · grid motion · shortcuts · autosave · offline · responsive.';
+};
+</script>
+</body></html>

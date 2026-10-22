@@ -1,0 +1,48 @@
+<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forge — Transform</title>
+<meta name="description" content="24 one-click text transformations: case, lines, whitespace, slugify and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="forge.css">
+</head><body>
+<div id="topbar"></div>
+<main class="shell"><div class="page">
+  <section class="phead" style="padding-bottom:24px">
+    <div class="eyebrow">workbench</div>
+    <h1>Trans<span class="g">form</span>.</h1>
+  </section>
+  <div class="grid2">
+    <div class="col">
+      <div class="panelhead"><span class="t">Input</span><div class="acts"><button class="btn" id="imp" data-press>Import</button><button class="btn" id="clr" data-press>Clear</button></div></div>
+      <textarea class="ta" id="inp" placeholder="Paste or type text…"></textarea>
+      <div class="panelhead" style="margin-top:16px"><span class="t">Output</span><div class="acts"><button class="btn" id="chain" data-press>Use as input</button><button class="btn" id="cp" data-press>Copy</button><button class="btn" id="dlb" data-press>Download</button></div></div>
+      <textarea class="ta out" id="out" readonly placeholder="Result appears here…"></textarea>
+    </div>
+    <div class="col">
+      <section class="card"><div class="ch"><h2>Operations</h2><span class="k" id="opcount"></span></div>
+        <div style="padding:18px"><div id="ops"></div></div>
+      </section>
+    </div>
+  </div>
+  <input type="file" id="file" accept=".txt,.md,text/*" style="display:none">
+</div></main>
+<script src="forge.js"></script>
+<script>
+function apply(op){const v=$('inp').value;const r=op.fn(v);$('out').value=r;pushHistory(op.label);}
+window.initPage=function(){
+  $('inp').value=S.last||'';
+  $('inp').addEventListener('input',()=>{S.last=$('inp').value;save();});
+  let count=0;const html=TRANSFORMS.map(c=>{count+=c.ops.length;return '<div class="opcat">'+c.cat+'</div>'+c.ops.map(o=>'<button class="op" data-id="'+o.id+'" data-press>'+icon('transform',14)+o.label+'</button>').join('');}).join('');
+  $('ops').innerHTML='<div class="ops">'+html+'</div>';
+  $('opcount').textContent=count+' ops';
+  $('ops').querySelectorAll('.op').forEach(b=>b.onclick=()=>apply(TFMAP[b.dataset.id]));
+  $('chain').onclick=()=>{if($('out').value){$('inp').value=$('out').value;S.last=$('inp').value;save();toast('Chained');}};
+  $('cp').onclick=()=>copyText($('out').value,'Output copied');
+  $('dlb').onclick=()=>{if($('out').value)dl('forge-output.txt','text/plain',$('out').value);};
+  $('clr').onclick=()=>{$('inp').value='';$('out').value='';S.last='';save();};
+  $('imp').onclick=()=>$('file').click();
+  $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('inp').value=r.result;S.last=r.result;save();toast('Imported '+f.name);};r.readAsText(f);};
+};
+</script>
+</body></html>

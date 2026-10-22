@@ -1,0 +1,48 @@
+<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forge — Analyze</title>
+<meta name="description" content="Live text metrics: counts, readability, token estimate and frequency tables.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="forge.css">
+</head><body>
+<div id="topbar"></div>
+<main class="shell"><div class="page">
+  <section class="phead" style="padding-bottom:24px">
+    <div class="eyebrow">metrics</div>
+    <h1>Ana<span class="g">lyze</span>.</h1>
+  </section>
+  <div class="grid2">
+    <div class="col">
+      <div class="panelhead"><span class="t">Text</span><div class="acts"><button class="btn" id="cp" data-press>Copy</button></div></div>
+      <textarea class="ta" id="inp" placeholder="Paste text to analyze…"></textarea>
+      <section class="card" style="margin-top:16px"><div class="ch"><h2>Readability</h2><span class="k" id="fleschLabel"></span></div>
+        <div style="padding:18px"><div class="frow"><span class="w">Flesch</span><span class="b"><i id="fleschBar" style="width:0"></i></span><span class="v" id="fleschV">0</span></div>
+        <div class="sd" style="color:var(--mut);font-size:12px;margin-top:10px;font-family:var(--mono)" id="fleschDesc"></div></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card"><div class="ch"><h2>Counts</h2></div><div style="padding:0"><div class="metrics" id="metrics"></div></div></section>
+      <section class="card"><div class="ch"><h2>Word frequency</h2><span class="k">top 15</span></div><div style="padding:18px"><div class="freq" id="freq"></div></div></section>
+    </div>
+  </div>
+</div></main>
+<script src="forge.js"></script>
+<script>
+function render(){const s=$('inp').value;const a=analyzeText(s);
+  $('metrics').innerHTML=[['chars',a.chars],['words',a.words],['sentences',a.sentences],['paragraphs',a.paragraphs],['lines',a.lines],['~tokens',a.tokens],['reading min',a.reading],['unique',a.unique],['avg len',a.avg],['longest',a.longest||'—'],['','']].filter(x=>x[0]).map(([l,n])=>'<div class="metric"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>').join('');
+  $('fleschV').textContent=a.flesch;const fl=['very hard','hard','fairly hard','standard','fairly easy','easy','very easy'][Math.min(6,Math.floor(a.flesch/15))];
+  $('fleschLabel').textContent=fl;$('fleschDesc').textContent='Higher is easier to read (0 complex → 100 simple).';
+  requestAnimationFrame(()=>{$('fleschBar').style.width=a.flesch+'%';});
+  const fq=wordFreq(s,15);const max=fq[0]?fq[0][1]:1;
+  $('freq').innerHTML=fq.length?fq.map(([w,c])=>'<div class="frow"><span class="w">'+esc(w)+'</span><span class="b"><i style="width:0" data-w="'+Math.round(c/max*100)+'%"></i></span><span class="v">'+c+'</span></div>').join(''):'<div class="empty">No words yet.</div>';
+  requestAnimationFrame(()=>document.querySelectorAll('#freq .b i').forEach(i=>i.style.width=i.dataset.w));
+}
+window.initPage=function(){
+  $('inp').value=S.last||'';
+  $('inp').addEventListener('input',()=>{S.last=$('inp').value;save();render();});
+  $('cp').onclick=()=>copyText($('inp').value,'Text copied');
+  render();
+};
+</script>
+</body></html>

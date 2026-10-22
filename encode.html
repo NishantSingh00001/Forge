@@ -1,0 +1,48 @@
+<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forge — Encode / Convert</title>
+<meta name="description" content="Base64, URL, HTML entities, JSON, ROT13, binary and hex — encode and decode.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="forge.css">
+</head><body>
+<div id="topbar"></div>
+<main class="shell"><div class="page">
+  <section class="phead" style="padding-bottom:24px">
+    <div class="eyebrow">codecs</div>
+    <h1>Encode / <span class="g">convert</span>.</h1>
+  </section>
+  <div class="grid2">
+    <div class="col">
+      <div class="panelhead"><span class="t">Input</span><div class="acts"><button class="btn" id="clr" data-press>Clear</button></div></div>
+      <textarea class="ta" id="inp" placeholder="Paste text or encoded data…"></textarea>
+      <div class="panelhead" style="margin-top:16px"><span class="t">Output</span><div class="acts"><button class="btn" id="chain" data-press>Use as input</button><button class="btn" id="cp" data-press>Copy</button></div></div>
+      <textarea class="ta out" id="out" readonly></textarea>
+    </div>
+    <div class="col">
+      <section class="card"><div class="ch"><h2>Converters</h2></div><div style="padding:18px"><div id="convs"></div></div></section>
+    </div>
+  </div>
+</div></main>
+<script src="forge.js"></script>
+<script>
+const GROUPS=[
+ ['Base64',[['b64enc','Encode'],['b64dec','Decode']]],
+ ['URL',[['urlenc','Encode'],['urldec','Decode']]],
+ ['HTML entities',[['htmlenc','Encode'],['htmldec','Decode']]],
+ ['JSON',[['jsonpretty','Pretty'],['jsonmin','Minify']]],
+ ['Cipher',[['rot13','ROT13']]],
+ ['Binary',[['tobin','To binary'],['frombin','From binary']]],
+ ['Hex',[['tohex','To hex'],['fromhex','From hex']]]
+];
+window.initPage=function(){
+  $('inp').value=S.last||'';
+  $('inp').addEventListener('input',()=>{S.last=$('inp').value;save();});
+  $('convs').innerHTML=GROUPS.map(([cat,ops])=>'<div class="opcat">'+cat+'</div><div class="ops">'+ops.map(([id,label])=>'<button class="op" data-id="'+id+'" data-press>'+icon('encode',14)+label+'</button>').join('')+'</div>').join('');
+  $('convs').querySelectorAll('.op').forEach(b=>b.onclick=()=>{$('out').value=CONV[b.dataset.id]($('inp').value);pushHistory(b.dataset.id);});
+  $('chain').onclick=()=>{if($('out').value){$('inp').value=$('out').value;S.last=$('inp').value;save();toast('Chained');}};
+  $('cp').onclick=()=>copyText($('out').value,'Output copied');
+  $('clr').onclick=()=>{$('inp').value='';$('out').value='';S.last='';save();};
+};
+</script>
+</body></html>
